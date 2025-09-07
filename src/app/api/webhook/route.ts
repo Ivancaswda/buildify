@@ -13,25 +13,11 @@ export const config = {
     },
 };
 
-const verifySignature = (req: NextRequest) => {
-    const signature = req.headers.get('x-lemonsqueezy-signature');
-    if (!signature) return false;
-    return signature === crypto
-        .createHmac('sha256', SECRET_KEY)
-        .update(req.body)
-        .digest('hex');
-};
+
 
 export async function POST(req: NextRequest) {
     try {
 
-
-
-
-        if (!verifySignature(req)) {
-            console.log("Invalid signature");
-            return new NextResponse(JSON.stringify({ error: 'Invalid signature' }), { status: 400 });
-        }
         let event;
         try {
             event = await req.json();
