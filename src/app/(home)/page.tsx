@@ -10,7 +10,7 @@ import {useRouter} from "next/navigation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {toast} from "sonner";
 import {useRequireAuth} from "@/hooks/use-require-auth";
-import {FoldersIcon, LogOut} from "lucide-react";
+import {CrownIcon, FoldersIcon, LogOut} from "lucide-react";
 import Link from "next/link";
 const Page = () => {
     const { user, loading } = useRequireAuth("", "/sign-up");
@@ -53,6 +53,13 @@ const Page = () => {
                             }}>
                                 <FoldersIcon/>
                                 мои проекты
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                                router.push('/pricing')
+                            }}>
+                                <CrownIcon/>
+                                <span className='text-primary font-semibold'>Pro</span>
+                                 подписка
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => {
                                 logout()

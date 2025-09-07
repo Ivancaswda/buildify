@@ -24,17 +24,20 @@ const verifySignature = (req: NextRequest) => {
 
 export async function POST(req: NextRequest) {
     try {
-        const buf = await buffer(req);
-        const body = buf.toString();
 
-        console.log("Received body:", body); // Логирование тела запроса
+
+
 
         if (!verifySignature(req)) {
             console.log("Invalid signature");
             return new NextResponse(JSON.stringify({ error: 'Invalid signature' }), { status: 400 });
         }
-
-        const event = JSON.parse(body);
+        let event;
+        try {
+            event = await req.json();
+        } catch {
+            return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+        }
 
         const eventName = event?.meta?.event_name;
         const email = event?.data?.attributes?.user_email;

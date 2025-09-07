@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {FoldersIcon, LogOut} from "lucide-react";
+import {CrownIcon, FoldersIcon, LogOut} from "lucide-react";
 import {toast} from "sonner";
 import {useAuth} from "@/hooks/use-auth";
 import {useRouter} from "next/navigation";  // Для объединения классов
@@ -48,6 +48,15 @@ const Pricing = () => {
                                 <FoldersIcon/>
                                 мои проекты
                             </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => {
+                                router.push('/pricing')
+                            }}>
+                                <CrownIcon/>
+                                <span className='text-primary font-semibold'>Pro</span>
+                                подписка
+                            </DropdownMenuItem>
+
                             <DropdownMenuItem onClick={() => {
                                 logout()
                                 router.push('/sign-up')
