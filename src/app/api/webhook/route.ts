@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import { buffer } from 'micro';
 
 
-const SECRET_KEY = process.env.LEMONSQUEEZY_SECRET_KEY;
+const SECRET_KEY = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET;
 
 export const config = {
     api: {
@@ -27,34 +27,43 @@ export async function POST(req: NextRequest) {
         const buf = await buffer(req);
         const body = buf.toString();
 
-        // Проверка подписи вебхука
+        console.log("Received body:", body); // Логирование тела запроса
+
         if (!verifySignature(req)) {
+            console.log("Invalid signature");
             return new NextResponse(JSON.stringify({ error: 'Invalid signature' }), { status: 400 });
         }
 
         const event = JSON.parse(body);
 
+        const eventName = event?.meta?.event_name;
+        const email = event?.data?.attributes?.user_email;
+        const status = event?.data?.attributes?.status;
+        if (!email || !eventName) {
+            return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
+        }
+        // Проверяем событие и статус
+        if (
+            (eventName === "order_created" || eventName === "order_paid") &&
+            status === "paid"
+        ) {
+            const { subscription } = event.data;
 
-        if (event.event === 'checkout.completed') {
-
-            const { customer, subscription } = event.data;
-
-            console.log(subscription, customer)
 
             if (subscription && subscription.plan_name === 'Vip') {
-
                 const user = await prisma.user.findUnique({
-                    where: { email: customer.email }, // Или можно искать по другому идентификатору
+                    where: { email: email },
                 });
 
                 if (user) {
-
+                    console.log("User found:", user);
                     await prisma.user.update({
-                        where: { email: customer.email },
+                        where: { email: email },
                         data: { isVip: true },
                     });
 
-                    console.log('User is now VIP:', customer.email);
+                } else {
+                    console.log('User not found:', email);
                 }
             }
         }
@@ -62,6 +71,7 @@ export async function POST(req: NextRequest) {
         return new NextResponse(JSON.stringify({ message: 'Webhook processed successfully' }), { status: 200 });
     } catch (error) {
         console.error('Webhook processing failed:', error);
-        return new NextResponse(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+        return new NextResponse(JSON.stringify({ error: error.message || 'Internal Server Error' }), { status: 500 });
     }
 }
+
