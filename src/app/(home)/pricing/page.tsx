@@ -98,11 +98,14 @@ const Pricing = () => {
                             <p className="text-sm text-muted-foreground">Получи безлимит и другие вип плюшки</p>
                         </div>
                         <div className="mt-6">
+                            {user?.isVip ?    <Button  disabled={true} className={cn('w-full bg-primary text-white')}>
+                                    Вы уже подписаны
+                            </Button> :
                             <Button  className={cn('w-full bg-primary text-white')}>
                                 <a href="https://buildify-ru.lemonsqueezy.com/buy/8ca3801b-abf8-48cb-ad88-1bb031225890" target="_blank" rel="noopener noreferrer">
                                     Подписаться сейчас
                                 </a>
-                            </Button>
+                            </Button>}
                         </div>
                     </div>
                 </div>
