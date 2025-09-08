@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
             (eventName === "order_created" || eventName === "order_paid") &&
             status === "paid"
         ) {
-            const { subscription } = event.data;
 
 
-            if (subscription) {
+
+
                 const user = await prisma.user.findUnique({
                     where: { email: email },
                 });
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
                 } else {
                     console.log('User not found:', email);
                 }
-            }
+
         }
 
         return new NextResponse(JSON.stringify({ message: 'Webhook processed successfully' }), { status: 200 });
