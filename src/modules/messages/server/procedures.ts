@@ -59,7 +59,8 @@ export const messagesRouter = createTRPCRouter({
                 name: 'website-builder/run',
                 data: {
                     value: input.value,
-                    projectId: input.projectId
+                    projectId: input.projectId,
+                    userId: ctx.userId
                 }
             })
 

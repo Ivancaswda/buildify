@@ -18,7 +18,7 @@ export const canCreateWebsite = async (userId: string) => {
 
     const createdWebsites = user.websitesCreated;
     if (createdWebsites >= WEBSITE_LIMIT) {
-        throw new Error("You have reached the limit of 5 websites. Please subscribe to create more.");
+       return  false
     }
 
     return true;

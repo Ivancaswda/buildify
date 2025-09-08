@@ -14,10 +14,7 @@ import {useRouter} from "next/navigation";  // Для объединения к�
 const Pricing = () => {
     const {user, logout} = useAuth()
     const router = useRouter()
-    const handleSubscription = () => {
-        // Перенаправление на страницу с оплатой LemonSqueezy
-        window.location.href = "https://buildify-ru.lemonsqueezy.com/buy/8ca3801b-abf8-48cb-ad88-1bb031225890"; // Здесь нужно указать URL для вашего checkout
-    };
+
 
     return (
         <div className="min-h-screen pb-12 px-6 sm:px-12">
@@ -86,7 +83,7 @@ const Pricing = () => {
                             <p className="text-sm text-muted-foreground">Великолепно для тестирования и обычный проектов</p>
                         </div>
                         <div className="mt-6">
-                            <Button variant="outline" className="w-full" disabled>
+                            <Button variant="outline" className="w-full text-black" disabled>
                                 Ограничено до 5 вебсайтов
                             </Button>
                         </div>
@@ -101,8 +98,10 @@ const Pricing = () => {
                             <p className="text-sm text-muted-foreground">Получи безлимит и другие вип плюшки</p>
                         </div>
                         <div className="mt-6">
-                            <Button onClick={handleSubscription} className={cn('w-full bg-primary text-white')}>
-                               Подписаться сейчас
+                            <Button  className={cn('w-full bg-primary text-white')}>
+                                <a href="https://buildify-ru.lemonsqueezy.com/buy/8ca3801b-abf8-48cb-ad88-1bb031225890" target="_blank" rel="noopener noreferrer">
+                                    Подписаться сейчас
+                                </a>
                             </Button>
                         </div>
                     </div>

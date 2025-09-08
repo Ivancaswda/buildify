@@ -2,7 +2,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const ShimmerMessages = () => {
-    const messages = ['Слушаем', 'Думаем', 'Генерируем', 'Отправляем', 'Получаем', 'Загружаем']
+    const messages = ['Слушаем', 'Думаем', 'Генерируем', 'Отправляем', 'Получаем', 'Загружаем', 'Это может занять до двух минут!', 'Исправляем ошибки', 'Смотрим туториалы']
     const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
 
     useEffect(() => {

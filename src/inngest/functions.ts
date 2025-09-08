@@ -24,16 +24,33 @@ export const WebSiteBuilder = inngest.createFunction(
 
         const userId = event.data.userId
 
-        console.log(userId)
 
-        await canCreateWebsite(userId)
+        if (!userId) {
+            throw new Error("User ID is missing or undefined");
+        }
 
-        await incrementWebsitesCreated(userId);
 
+        const canCreate = await canCreateWebsite(userId);
+        if (!canCreate) {
+            await prisma.message.create({
+                data: {
+                    projectId: event.data.projectId,
+                    content: 'Вы достигли лимита на создание сайтов. Пожалуйста, оформите подписку для продолжения.',
+                    role: 'ASSISTANT',
+                    type: 'ERROR'
+                }
+            });
+            return {
+                error: 'You have reached the limit for creating websites. Please subscribe to create more.'
+            };
+        }
 
         const sandboxId = await step.run('get-sandbox-id', async () => {
             const sandbox = await Sandbox.create('code-maker-test-2');
             await sandbox.setTimeout(SANDBOX_TIMEOUT)
+
+            await incrementWebsitesCreated(userId)
+
             return sandbox.sandboxId
         })
 
@@ -197,6 +214,8 @@ export const WebSiteBuilder = inngest.createFunction(
                 return codeAgent;
             },
         });
+
+
 
 
         const result  = await network.run(event.data.value, {state: state})

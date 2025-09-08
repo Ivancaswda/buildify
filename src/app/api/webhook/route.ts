@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             const { subscription } = event.data;
 
 
-            if (subscription && subscription.plan_name === 'Vip') {
+            if (subscription) {
                 const user = await prisma.user.findUnique({
                     where: { email: email },
                 });
