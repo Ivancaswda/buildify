@@ -74,7 +74,8 @@ const AssistantMessage = ({ content, fragment, createdAt, isActiveFragment, onFr
             </div>
             <div className='pl-8.5 flex flex-col gap-y-4'>
 
-                <TypingMessage content={content} typingSpeed={50} />
+
+                <span>{content}</span>
                 {fragment && type === 'RESULT' && (
                     <FragmentCard
                         fragment={fragment}

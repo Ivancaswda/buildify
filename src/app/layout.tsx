@@ -6,6 +6,7 @@ import {Toaster} from "@/components/ui/sonner";
 import {ThemeProvider} from "next-themes";
 import {AuthProvider} from "@/hooks/use-auth";
 import Serverrr from "@/app/serverrr";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +33,14 @@ export default function RootLayout({
     <AuthProvider>
         <html lang="en" suppressHydrationWarning={true}>
           <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            className={`${geistSans.variable} ${geistMono.variable} antialiased `}
           >
           <ThemeProvider attribute='class' defaultTheme='system' enableSystem={true} disableTransitionOnChange={true}>
             {children}
           </ThemeProvider>
 
           <Toaster/>
+
           </body>
         </html>
     </AuthProvider>

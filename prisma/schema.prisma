@@ -64,4 +64,5 @@ model User {
   projects  Project[]
   isVip           Boolean  @default(false)
   websitesCreated Int      @default(0)
+  avatarUrl String?
 }

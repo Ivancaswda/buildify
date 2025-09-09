@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import {ChevronDownIcon, ChevronLeftIcon, CrownIcon, FoldersIcon, LogOut, SunMoonIcon, TabletIcon} from "lucide-react";
+import {ChevronDownIcon, ChevronLeftIcon, CrownIcon, FoldersIcon, LogOut, SunMoonIcon, TabletIcon, Apple} from "lucide-react";
 import Link from "next/link";
 import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 import { useQuery } from "@tanstack/react-query";
@@ -30,6 +30,13 @@ import { format, isBefore, startOfMonth, endOfMonth, eachMonthOfInterval } from 
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend } from 'chart.js';
 import {Button} from "@/components/ui/button";
 import {useTheme} from "next-themes";
+import Footer from "@/components/Footer";
+import { motion } from 'framer-motion';
+import { Line } from 'react-chartjs-2';
+import {InfiniteMovingCards} from "@/components/ui/infinite-moving-cards";
+import {testimonials} from "@/app/about-us/page";
+import {InfiniteMovingLogos} from "@/app/(home)/infinite-moving-logos";
+import {FaGoogle, FaMicrosoft, FaTelegram, FaVk} from "react-icons/fa";
 
 ChartJS.register(
     CategoryScale,
@@ -41,14 +48,19 @@ ChartJS.register(
     Legend
 );
 
+
+
+
 const Page = () => {
-    const { user, loading } = useRequireAuth("", "/sign-up");
+
     const router = useRouter()
-    const { logout } = useAuth()
+    const { logout, user, loading } = useAuth()
     const trpc = useTRPC()
     const { data: projects } = useQuery(trpc.projects.getMany.queryOptions());
     const [projectStats, setProjectStats] = useState([]);
     const {theme, setTheme} = useTheme()
+    console.log(user)
+
     useEffect(() => {
         if (projects) {
             const stats = groupProjectsByMonth(projects);
@@ -60,17 +72,17 @@ const Page = () => {
         const grouped = {};
         const currentDate = new Date();
 
-        // Диапазон месяцев от начала (например, с 2025-01) до текущего месяца
-        const startDate = new Date('2025-01-01'); // начальная дата
-        const endDate = currentDate; // текущая дата
 
-        // Массив всех месяцев в этом диапазоне
+        const startDate = new Date('2025-01-01');
+        const endDate = currentDate;
+
+
         const allMonths = eachMonthOfInterval({
             start: startOfMonth(startDate),
             end: endOfMonth(endDate),
         });
 
-        // Группируем проекты по месяцам
+
         projects.forEach((project) => {
             const month = format(new Date(project.createdAt), 'yyyy-MM');
             if (!grouped[month]) {
@@ -79,7 +91,7 @@ const Page = () => {
             grouped[month] += 1;
         });
 
-        // Возвращаем массив, который отображает все месяцы
+
         return allMonths.map((month) => {
             const monthStr = format(month, 'yyyy-MM');
             return {
@@ -89,18 +101,22 @@ const Page = () => {
         });
     };
 
-    // Кастомный Tooltip
-    const CustomTooltip = ({ active, payload }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-2 rounded-lg shadow-lg">
-                    <p className="text-sm font-bold">{`Месяц: ${payload[0].payload.name}`}</p>
-                    <p className="text-sm">{`Проектов: ${payload[0].value}`}</p>
-                </div>
-            );
-        }
-        return null;
+
+    const data = {
+        labels: projectStats.map(p => p.name),
+        datasets: [
+            {
+                label: 'Проекты',
+                data: projectStats.map(p => p.projects),
+                borderColor: 'rgba(75,192,192,1)',
+                backgroundColor: 'rgba(75,192,192,0.2)',
+                tension: 0.6, // сглаживание линии
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            },
+        ],
     };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center flex-col w-full h-screen gap-4">
@@ -109,7 +125,13 @@ const Page = () => {
             </div>
         );
     }
-    console.log(projectStats)
+    const companyIcons = [
+
+        <FaGoogle size={150} color="#4285F4" />,
+        <FaMicrosoft size={150} color="#4285F4" />,
+        <FaVk size={150} color="#4285F4" />,
+        <FaTelegram size={150} color="#1877F2" />,
+    ];
     return (
         <div className="flex flex-col mx-auto w-full">
             <div className="flex justify-between px-4 mt-3 items-center">
@@ -158,11 +180,18 @@ const Page = () => {
 
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                            <DropdownMenuItem onClick={() => {
-                                logout();
-                                router.push('/sign-up');
-                                toast.success('Вы вышли!');
-                            }}>
+                            <DropdownMenuItem
+                                onClick={async () => {
+                                    try {
+                                        await logout(); // дожидаемся выхода
+                                        toast.success('Вы вышли!');
+                                        router.replace('/sign-up'); // лучше replace, чтобы нельзя было вернуться "назад"
+                                    } catch (err) {
+                                        toast.error('Ошибка при выходе');
+                                    }
+                                }}
+                            >
+                                <LogOut/>
                                 Выйти
                             </DropdownMenuItem>
 
@@ -187,24 +216,52 @@ const Page = () => {
             </div>
 
             {user?.isVip && (
-                <section className="mt-16 px-4 py-12 bg-gradient-to-r from-green-600 via-aqua-600 to-blue-600 text-white rounded-lg shadow-xl max-w-4xl mx-auto">
+                <section className="mt-16 px-4 py-12 bg-gradient-to-r from-green-600 via-aqua-600 to-blue-600 text-white rounded-lg shadow-xl max-w-4xl mx-auto animate-gradient">
                     <div className="flex items-center gap-4 justify-between">
                         <div className="space-y-4">
-                            <h2 className="text-3xl font-bold">Вы теперь помогаете нам!</h2>
-                            <p className="text-lg">Команда Buildify выражает особенную благодарность вам так как вы оформили подписку Vip и теперь имееете безграничные возможности на нашем сайте!</p>
-                            <button
-                                className="px-6 py-2 bg-primary text-white font-semibold rounded-md shadow-md hover:bg-primary-dark transition-colors"
-                                onClick={() => router.push("/about")}
+                            {/* Заголовок с анимацией */}
+                            <motion.h2
+                                className="text-3xl font-bold"
+                                initial={{ opacity: 0, y: -50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                Вы теперь помогаете нам!
+                            </motion.h2>
+                            {/* Описание с анимацией */}
+                            <motion.p
+                                className="text-lg"
+                                initial={{ opacity: 0, y: -50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                Команда Buildify выражает особенную благодарность вам, так как вы оформили подписку Vip и теперь имеете безграничные возможности на нашем сайте!
+                            </motion.p>
+                            {/* Кнопка с эффектами */}
+                            <motion.button
+                                className="px-6 py-2 bg-primary text-white font-semibold rounded-md shadow-md hover:bg-primary-dark transition-all duration-300 transform hover:scale-105"
+                                onClick={() => router.push("/about-us")}
+                                whileHover={{ scale: 1.05 }}
                             >
                                 Узнать о нас
-                            </button>
+                            </motion.button>
                         </div>
-                        <div className="hidden md:block">
+                        {/* Изображение с параллакс-эффектом */}
+                        <motion.div
+                            className="hidden md:block"
+                            initial={{ x: 100 }}
+                            animate={{ x: 0 }}
+                            transition={{ duration: 1.2, type: "spring", stiffness: 50 }}
+                        >
                             <Image src="/logo.png" alt="AI Features" width={300} height={200} className="rounded-lg w-[600px] h-full" />
-                        </div>
+                        </motion.div>
                     </div>
-                </section>
-            )}
+                </section>      )}
+            <hr/>
+            <div className="py-12 ">
+                <h2 className="text-center text-2xl font-bold mb-6">Наши партнеры</h2>
+                <InfiniteMovingLogos items={companyIcons} direction="left" speed="slow" gap={32} />
+            </div>
 
             <section className="space-y-6 py-[16vh] 2xl:py-48">
                 <h1 className="text-2xl md:text-5xl font-bold text-center">
@@ -223,19 +280,31 @@ const Page = () => {
                 <h1>Ваша статистика</h1>
                 <TabletIcon/>
             </div>
-            <ResponsiveContainer width="100%" height={400}>
-                <BarChart className='px-12' data={projectStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="projects" fill="oklch(0.679 0.105 225.705)" />
-                </BarChart>
-            </ResponsiveContainer>
+            <div className="mx-auto w-full max-w-3xl">
+                <Line data={data} />
+            </div>
+            <div className="h-[40rem] rounded-md flex flex-col antialiased  items-center justify-center relative overflow-hidden">
+                <InfiniteMovingCards
+                    items={testimonials}
+                    direction="right"
+                    speed="slow"
+                />
+            </div>
 
-
+            <Footer/>
         </div>
     );
 }
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-2 rounded-lg shadow-lg">
+                <p className="text-sm font-bold">{`Месяц: `}</p>
+                <p className="text-sm">{`Проектов: `}</p>
+            </div>
+        );
+    }
+    return null;
+};
 
 export default Page;

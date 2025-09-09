@@ -13,10 +13,10 @@ export const createToken = (userId: string) =>
 
 export const verifyToken = (token: string) => jwt.verify(token, JWT_SECRET) as { userId: string };
 
-export const registerUser = async (email: string, password: string, name?: string) => {
+export const registerUser = async (email: string, password: string, name?: string, avatarUrl?: string) => {
     const hashed = await hashPassword(password)
 
-    const user = await prisma.user.create({ data: { email, password: hashed, name } });
+    const user = await prisma.user.create({ data: { email, password: hashed, name, avatarUrl } });
 
     const token = createToken(user.id);
     return { user, token };

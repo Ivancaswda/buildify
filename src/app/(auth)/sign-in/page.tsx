@@ -7,11 +7,12 @@ import { useRouter } from "next/navigation";
 import {LoaderThree} from "@/components/ui/loader";
 import {useAuth} from "@/hooks/use-auth";
 import {IconBrandGithub, IconBrandGoogle, IconBrandOnlyfans} from "@tabler/icons-react";
-import {useRequireAuth} from "@/hooks/use-require-auth";
+import {signInWithPopup} from "firebase/auth";
+import {auth, provider} from "@/lib/firebase";
 import {toast} from "sonner";
 
 function SignInPage() {
-    const { user, loading:userLoading } = useRequireAuth("/", "");
+    const { user, loading:userLoading, setUser } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,90 +40,133 @@ function SignInPage() {
 
             if (!res.ok) throw new Error(data.message || "Sign in failed");
 
-            toast.success("Successfully signed in!");
-            router.push("/"); // редирект на домашнюю
+            toast.success("Вы успешно вошли!");
+
+            router.replace('/')
+            router.refresh()
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
-    console.log(user)
-    useEffect(() => {
-        if (user && !loading) {
-            router.push('/')
+    const handleGoogleSignIn = async () => {
+        try {
+
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            const res = await fetch("/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: user.email,
+                    userName: user.displayName,
+                    avatarUrl: user.photoURL
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Ошибка входа");
+
+            setUser(data.user);
+            localStorage.setItem("token", data.token);
+
+            router.push("/");
+            toast.success("Успешный вход через Google!");
+        } catch (err: any) {
+            toast.error(err.message);
         }
-    }, [user, loading, router])
+    };
+
+    useEffect(() => {
+        if (user ) {
+            router.replace("/");
+        }
+    }, [user, router]);
 
     if (userLoading) {
         return (
-            <div className="flex items-center justify-center w-full h-full gap-4">
+            <div className="flex items-center justify-center w-full h-screen gap-4">
                 <LoaderThree />
-                <p className="text-orange-500">Loading...</p>
+                <p className="text-primary">Загрузка...</p>
             </div>
         );
     }
     return (
-        <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
-                Sign In
-            </h2>
+        <div className='flex items-center justify-center w-full h-screen '>
+            <div className="mx-auto w-full  max-w-md rounded-2xl bg-white p-6 shadow-lg dark:bg-black">
+                <h2 className="text-2xl font-bold text-primary">Вход</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Введите данные для входа</p>
+
+                <form className="my-8 space-y-4" onSubmit={handleSubmit}>
+                    <LabelInputContainer>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            onChange={(e) => setEmail(e.target.value)}
+                            value={email}
+                            id="email"
+                            placeholder="you@example.com"
+                            type="email"
+                            required
+                            className="rounded-xl"
+                        />
+                    </LabelInputContainer>
+
+                    <LabelInputContainer>
+                        <Label htmlFor="password">Пароль</Label>
+                        <Input
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
+                            id="password"
+                            placeholder="••••••••"
+                            type="password"
+                            required
+                            className="rounded-xl"
+                        />
+                    </LabelInputContainer>
+
+                    {error && <p className="text-sm text-red-500">{error}</p>}
+
+                    <button
+                        className="w-full rounded-xl bg-primary px-4 py-2 font-medium text-white shadow hover:bg-primary/90 transition-all"
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? "Входим..." : "Войти"}
+                    </button>
+
+                    <p className="mt-2 text-sm text-center">
+                        Впервые у нас?{" "}
+                        <span
+                            onClick={() => router.push("/sign-up")}
+                            className="cursor-pointer text-primary hover:underline"
+                        >
+            Зарегистрироваться
+          </span>
+                    </p>
+
+                    <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+
+                    <div className="flex flex-col gap-3">
+                        <button onClick={handleGoogleSignIn}
+                                className="group/btn shadow-input relative flex h-10 w-full items-center justify-start space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900"
+                                type="button"
+                        >
+                            <IconBrandGoogle />
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Google</span>
+                            <BottomGradient />
+                        </button>
 
 
 
-            <form className="my-8" onSubmit={handleSubmit}>
+                    </div>
+                </form>
+            </div>
 
-
-                <LabelInputContainer className="mb-4">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                        onChange={(e) => setEmail(e.target.value)}
-                        value={email}
-                        id="email"
-                        placeholder="projectmayhem@fc.com"
-                        type="email"
-                        required
-                    />
-                </LabelInputContainer>
-
-                <LabelInputContainer className="mb-6">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                        onChange={(e) => setPassword(e.target.value)}
-                        value={password}
-                        id="password"
-                        placeholder="••••••••"
-                        type="password"
-                        required
-                    />
-                </LabelInputContainer>
-
-                {error && (
-                    <p className="mb-4 text-sm text-red-500">{error}</p>
-                )}
-
-                <button
-                    className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-md dark:bg-zinc-800"
-                    type="submit"
-                    disabled={loading}
-                >
-                    {loading ? "Signing up..." : "Sign up →"}
-                    <BottomGradient />
-                </button>
-                <p className='mt-2 text-sm'>Впервые у нас? <span onClick={() => router.push('/sign-up')} className='text-orange-600 cursor-pointer hover:text-orange-700 transition-all '>Зарегистрироваться</span></p>
-
-
-                <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-
-                <div className="flex flex-col space-y-4">
-                    <SocialButton icon={<IconBrandGithub />} label="GitHub" />
-                    <SocialButton icon={<IconBrandGoogle />} label="Google" />
-                    <SocialButton icon={<IconBrandOnlyfans />} label="OnlyFans" />
-                </div>
-            </form>
         </div>
     );
-}
+      }
 
 const SocialButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
     <button
